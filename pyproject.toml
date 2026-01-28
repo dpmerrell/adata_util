@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "adata_util"
+version = "0.1.0"
+description = "A CLI for operating on AnnData objects (h5ad files)"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "anndata",
+    "scanpy",
+    "pandas",
+]
+
+[project.scripts]
+adata_util = "adata_util.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
