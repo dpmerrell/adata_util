@@ -3,6 +3,8 @@
 import argparse
 import sys
 
+import argcomplete
+
 from adata_util.commands import view, concat, join, scanpy_cmd, plot_embedding
 
 
@@ -21,6 +23,7 @@ def main():
     scanpy_cmd.register(subparsers)
     plot_embedding.register(subparsers)
 
+    argcomplete.autocomplete(parser)
     args, remaining = parser.parse_known_args()
 
     if args.command is None:
