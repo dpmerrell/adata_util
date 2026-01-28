@@ -3,6 +3,8 @@
 import scanpy as sc
 import anndata as ad
 
+from adata_util.commands.utils import parse_extra_args
+
 
 def register(subparsers):
     """Register the scanpy subcommand."""
@@ -27,47 +29,6 @@ def register(subparsers):
     parser.set_defaults(func=run)
 
 
-def _parse_value(value_str):
-    """Parse a string value into appropriate Python type."""
-    if value_str.lower() == "true":
-        return True
-    if value_str.lower() == "false":
-        return False
-    if value_str.lower() == "none":
-        return None
-
-    try:
-        return int(value_str)
-    except ValueError:
-        pass
-
-    try:
-        return float(value_str)
-    except ValueError:
-        pass
-
-    return value_str
-
-
-def _parse_extra_args(extra_args):
-    """Parse a list of extra arguments into kwargs dict."""
-    kwargs = {}
-    i = 0
-    while i < len(extra_args):
-        arg = extra_args[i]
-        if arg.startswith("--"):
-            key = arg[2:].replace("-", "_")
-            if i + 1 < len(extra_args) and not extra_args[i + 1].startswith("--"):
-                kwargs[key] = _parse_value(extra_args[i + 1])
-                i += 2
-            else:
-                kwargs[key] = True
-                i += 1
-        else:
-            i += 1
-    return kwargs
-
-
 def _get_scanpy_function(operation):
     """Get a scanpy function from its dotted name."""
     parts = operation.split(".")
@@ -79,7 +40,7 @@ def _get_scanpy_function(operation):
 
 def run(args, extra_args=None):
     """Execute the scanpy command."""
-    kwargs = _parse_extra_args(extra_args or [])
+    kwargs = parse_extra_args(extra_args or [])
 
     print(f"Reading {args.input}...")
     adata = ad.read_h5ad(args.input)

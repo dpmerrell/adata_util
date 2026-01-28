@@ -3,7 +3,7 @@
 import argparse
 import sys
 
-from adata_util.commands import view, concat, join, scanpy_cmd
+from adata_util.commands import view, concat, join, scanpy_cmd, plot_embedding
 
 
 def main():
@@ -19,6 +19,7 @@ def main():
     concat.register(subparsers)
     join.register(subparsers)
     scanpy_cmd.register(subparsers)
+    plot_embedding.register(subparsers)
 
     args, remaining = parser.parse_known_args()
 
