@@ -35,7 +35,7 @@ def register(subparsers):
     parser.set_defaults(func=run)
 
 
-def run(args):
+def run(args, _extra_args=None):
     """Execute the concat command."""
     if len(args.files) < 2:
         print("Error: concat requires at least one input file and one output file")

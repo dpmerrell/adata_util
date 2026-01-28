@@ -16,7 +16,7 @@ def register(subparsers):
     parser.set_defaults(func=run)
 
 
-def run(args):
+def run(args, _extra_args=None):
     """Execute the view command."""
     adata = ad.read_h5ad(args.input)
 

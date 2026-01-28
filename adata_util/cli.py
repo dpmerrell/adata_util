@@ -20,15 +20,16 @@ def main():
     join.register(subparsers)
     scanpy_cmd.register(subparsers)
 
-    args = parser.parse_args()
+    args, remaining = parser.parse_known_args()
 
     if args.command is None:
         parser.print_help()
         sys.exit(1)
 
-    # Execute the command
-    args.func(args)
+    # Execute the command, passing remaining args for commands that accept them
+    args.func(args, remaining)
 
 
 if __name__ == "__main__":
     main()
+

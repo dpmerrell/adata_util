@@ -72,7 +72,7 @@ def _read_table(path, sep=None):
             return pd.read_csv(path)
 
 
-def run(args):
+def run(args, _extra_args=None):
     """Execute the join command."""
     # Read input files
     print(f"Reading {args.input}...")
