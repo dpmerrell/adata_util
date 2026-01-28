@@ -41,7 +41,7 @@ def register(subparsers):
     parser.add_argument(
         "--how",
         default="left",
-        choices=["left", "inner", "outer"],
+        choices=["left", "inner"],
         help="Type of join. Default: left",
     )
     parser.add_argument(
@@ -74,7 +74,6 @@ def _read_table(path, sep=None):
 
 def run(args, _extra_args=None):
     """Execute the join command."""
-    # Read input files
     print(f"Reading {args.input}...")
     adata = ad.read_h5ad(args.input)
 
@@ -82,54 +81,54 @@ def run(args, _extra_args=None):
     table = _read_table(args.table, args.sep)
 
     # Determine join keys
-    right_on = args.right_on
-    if right_on is None:
-        right_on = table.columns[0]
-
-    # Set the right key as index for the table
+    right_on = args.right_on if args.right_on is not None else table.columns[0]
     table = table.set_index(right_on)
 
-    # Get the target dataframe (obs or var)
-    if args.on == "obs":
-        target = adata.obs
-    else:
-        target = adata.var
-
-    # Determine left key
+    # Get target dataframe and set up join key
+    target = adata.obs.copy() if args.on == "obs" else adata.var.copy()
     left_on = args.left_on
 
     if left_on is not None:
-        # Use the specified column as join key
-        original_index = target.index.copy()
-        target = target.reset_index()
-        target = target.set_index(left_on)
+        target = target.reset_index().set_index(left_on)
 
     # Perform the join
-    print(f"Joining on {args.on}...")
-
-    # Find columns to add (avoid duplicates)
+    print(f"Joining on {args.on} ({args.how})...")
     new_cols = [c for c in table.columns if c not in target.columns]
-    if len(new_cols) == 0:
-        print("Warning: No new columns to add (all columns already exist)")
-    else:
+    if new_cols:
         print(f"Adding columns: {', '.join(new_cols)}")
+    else:
+        print("Warning: No new columns to add (all columns already exist)")
 
-    # Join the tables
-    result = target.join(table[new_cols], how=args.how)
+    result = target.join(table[new_cols] if new_cols else table[[]], how=args.how)
 
-    # Restore original index if we changed it
+    # Subset AnnData to keys in the result
+    keys_to_keep = result.index
+    if args.on == "obs":
+        if left_on is not None:
+            mask = adata.obs[left_on].isin(keys_to_keep)
+        else:
+            mask = adata.obs_names.isin(keys_to_keep)
+        adata = adata[mask, :].copy()
+    else:
+        if left_on is not None:
+            mask = adata.var[left_on].isin(keys_to_keep)
+        else:
+            mask = adata.var_names.isin(keys_to_keep)
+        adata = adata[:, mask].copy()
+
+    # Restore original index structure and assign to AnnData
     if left_on is not None:
         result = result.reset_index()
-        result = result.set_index(original_index.name if original_index.name else "index")
-        result.index = original_index
+        if args.on == "obs":
+            result.index = adata.obs_names
+        else:
+            result.index = adata.var_names
 
-    # Update the AnnData
     if args.on == "obs":
         adata.obs = result
     else:
         adata.var = result
 
-    # Write output
     print(f"Writing to {args.output}...")
     adata.write_h5ad(args.output)
     print("Done.")

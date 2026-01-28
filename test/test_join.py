@@ -120,3 +120,42 @@ def test_join_left_partial_match(simple_adata, temp_dir):
     assert adata.obs.loc["cell_0", "value"] == 1.0
     assert adata.obs.loc["cell_1", "value"] == 2.0
     assert pd.isna(adata.obs.loc["cell_2", "value"])
+
+
+def test_join_inner(simple_adata, temp_dir):
+    """Test inner join subsets AnnData to matching keys only."""
+    # Create a CSV with only a few matching cell IDs
+    df = pd.DataFrame(
+        {
+            "cell_id": ["cell_0", "cell_1", "cell_999"],  # cell_999 doesn't exist
+            "value": [1.0, 2.0, 3.0],
+        }
+    )
+    csv_path = os.path.join(temp_dir, "partial_metadata.csv")
+    df.to_csv(csv_path, index=False)
+
+    output_path = os.path.join(temp_dir, "joined_inner.h5ad")
+
+    result = subprocess.run(
+        [
+            "adata_util",
+            "join",
+            simple_adata,
+            csv_path,
+            output_path,
+            "--how",
+            "inner",
+        ],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+
+    adata = ad.read_h5ad(output_path)
+    # Inner join keeps only the intersection of keys
+    assert adata.n_obs == 2
+    assert set(adata.obs_names) == {"cell_0", "cell_1"}
+    assert "value" in adata.obs.columns
+    assert adata.obs.loc["cell_0", "value"] == 1.0
+    assert adata.obs.loc["cell_1", "value"] == 2.0
