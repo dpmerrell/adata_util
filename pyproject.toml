@@ -7,11 +7,11 @@ name = "adata_util"
 version = "0.1.0"
 description = "A CLI for operating on AnnData objects (h5ad files)"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dependencies = [
-    "anndata",
-    "scanpy",
-    "pandas",
+    "anndata>=0.12,<0.13",
+    "scanpy>=1.12,<2",
+    "pandas>=2.0,<3",
 ]
 
 [project.scripts]
