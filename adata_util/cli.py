@@ -5,7 +5,7 @@ import sys
 
 import argcomplete
 
-from adata_util.commands import view, concat, join, scanpy_cmd, plot_embedding
+from adata_util.commands import view, concat, join, scanpy_cmd, plot_embedding, split, score_genes
 
 
 def main():
@@ -22,6 +22,8 @@ def main():
     join.register(subparsers)
     scanpy_cmd.register(subparsers)
     plot_embedding.register(subparsers)
+    split.register(subparsers)
+    score_genes.register(subparsers)
 
     argcomplete.autocomplete(parser)
     args, remaining = parser.parse_known_args()
