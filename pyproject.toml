@@ -7,6 +7,7 @@ name = "adata_util"
 version = "0.1.0"
 description = "A CLI for operating on AnnData objects (h5ad files)"
 readme = "README.md"
+license = "MIT"
 requires-python = ">=3.13"
 dependencies = [
     "anndata>=0.12,<0.13",
