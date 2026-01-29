@@ -1,6 +1,42 @@
 """View command: prints an informative summary of an h5ad file."""
 
 import anndata as ad
+import numpy as np
+from scipy import sparse
+
+
+def _describe_matrix(matrix, indent="  "):
+    """Return a description of a matrix including sparsity, dtype, and sample values."""
+    lines = []
+
+    # Sparse or dense
+    is_sparse = sparse.issparse(matrix)
+    storage = "sparse" if is_sparse else "dense"
+
+    # Dtype
+    dtype = matrix.dtype
+
+    lines.append(f"{indent}Storage: {storage}, dtype: {dtype}")
+
+    # Get sample of nonzero values
+    if is_sparse:
+        # For sparse matrices, get data directly
+        if hasattr(matrix, "data") and len(matrix.data) > 0:
+            nonzero_vals = matrix.data[:10]
+        else:
+            nonzero_vals = []
+    else:
+        # For dense matrices, flatten and find nonzeros
+        flat = np.asarray(matrix).flatten()
+        nonzero_vals = flat[flat != 0][:10]
+
+    if len(nonzero_vals) > 0:
+        sample_str = ", ".join(f"{v:.4g}" for v in nonzero_vals)
+        lines.append(f"{indent}Sample nonzero values: {sample_str}")
+    else:
+        lines.append(f"{indent}Sample nonzero values: (none found)")
+
+    return "\n".join(lines)
 
 
 def register(subparsers):
@@ -22,6 +58,14 @@ def run(args, _extra_args=None):
 
     print(f"AnnData object: {args.input}")
     print(f"  Shape: {adata.n_obs} observations x {adata.n_vars} variables")
+    print()
+
+    # X (main data matrix)
+    print("X (main data matrix):")
+    if adata.X is not None:
+        print(_describe_matrix(adata.X, indent="    "))
+    else:
+        print("    (empty)")
     print()
 
     # obs (cell metadata)
@@ -85,5 +129,6 @@ def run(args, _extra_args=None):
     print(f"layers: {len(adata.layers.keys())} entries")
     if len(adata.layers.keys()) > 0:
         for key in adata.layers.keys():
-            shape = adata.layers[key].shape
-            print(f"    {key}: {shape}")
+            layer = adata.layers[key]
+            print(f"    {key}: {layer.shape}")
+            print(_describe_matrix(layer, indent="      "))
