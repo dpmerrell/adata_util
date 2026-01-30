@@ -5,7 +5,7 @@ import sys
 
 import argcomplete
 
-from adata_util.commands import view, concat, join, scanpy_cmd, plot_embedding, split, score_genes
+from adata_util.commands import view, concat, join, scanpy_cmd, plot, split, score_genes
 
 
 def main():
@@ -21,7 +21,7 @@ def main():
     concat.register(subparsers)
     join.register(subparsers)
     scanpy_cmd.register(subparsers)
-    plot_embedding.register(subparsers)
+    plot.register(subparsers)
     split.register(subparsers)
     score_genes.register(subparsers)
 

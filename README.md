@@ -37,7 +37,7 @@ eval "$(register-python-argcomplete adata_util)"
 | `join` | Join tabular data to obs or var |
 | `split` | Extract obs or var table to CSV/TSV |
 | `scanpy` | Run any scanpy operation |
-| `plot_embedding` | Plot an embedding to an image file |
+| `plot` | Run any scanpy plotting function |
 | `score_genes` | Score gene lists using scanpy.tl.score_genes |
 
 ## Command Reference
@@ -157,28 +157,34 @@ adata_util scanpy tl.umap processed.h5ad processed.h5ad
 adata_util scanpy tl.leiden processed.h5ad processed.h5ad --resolution 0.5
 ```
 
-### `plot_embedding`
+### `plot`
 
-Plot an embedding from an h5ad file using scanpy.pl.embedding.
+Run a scanpy plotting function on an h5ad file. Supports any `scanpy.pl` function.
 
 ```bash
-adata_util plot_embedding <input.h5ad> <basis> <output.png> [--kwargs]
+adata_util plot <function> <input.h5ad> <output.png> [--kwargs]
 ```
 
 **Arguments:**
-- `basis`: The embedding to plot (e.g., `X_pca`, `X_umap`, `X_tsne`)
+- `function`: Plotting function (e.g., `embedding`, `violin`, `heatmap`)
 - `output`: Image file (.png, .pdf, .svg)
 
 **Example:**
 ```bash
 # Basic UMAP plot
-adata_util plot_embedding data.h5ad X_umap umap.png
+adata_util plot embedding data.h5ad umap.png --basis X_umap
 
 # Colored by cluster and gene expression
-adata_util plot_embedding data.h5ad X_umap umap_colored.png --color leiden cell_type CD4
+adata_util plot embedding data.h5ad umap_colored.png --basis X_umap --color leiden cell_type CD4
 
-# Customized plot
-adata_util plot_embedding data.h5ad X_pca pca.pdf --color batch --palette Set2 --size 20
+# Customized PCA plot
+adata_util plot embedding data.h5ad pca.pdf --basis X_pca --color batch --palette Set2 --size 20
+
+# Violin plot
+adata_util plot violin data.h5ad violin.png --keys gene1 gene2 --groupby cluster
+
+# Heatmap
+adata_util plot heatmap data.h5ad heatmap.png --var_names gene1 gene2 gene3 --groupby cluster
 ```
 
 ### `score_genes`
@@ -244,8 +250,8 @@ adata_util score_genes clustered.h5ad cell_signatures.yaml scored.h5ad
 adata_util join scored.h5ad cell_annotations.csv annotated.h5ad
 
 # 7. Generate plots
-adata_util plot_embedding annotated.h5ad X_umap umap_clusters.png --color leiden
-adata_util plot_embedding annotated.h5ad X_umap umap_celltypes.png --color cell_type
+adata_util plot embedding annotated.h5ad umap_clusters.png --basis X_umap --color leiden
+adata_util plot embedding annotated.h5ad umap_celltypes.png --basis X_umap --color cell_type
 
 # 8. Export metadata for downstream analysis
 adata_util split annotated.h5ad obs cell_metadata.csv
